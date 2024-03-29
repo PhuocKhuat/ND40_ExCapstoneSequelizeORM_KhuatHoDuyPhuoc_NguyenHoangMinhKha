@@ -1,0 +1,10 @@
+{
+  "name": "ex-capstone-sequelize-orm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Phuoc <khuathoduyphuoc2001@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
