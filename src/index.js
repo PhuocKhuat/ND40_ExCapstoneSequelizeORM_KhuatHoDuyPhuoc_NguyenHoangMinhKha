@@ -8,4 +8,6 @@ app.listen(port, () => {
 console.log(`App run on http://localhost:${port}`);
 });
 
+app.use(express.json());
+
 app.use(rootRouter);
