@@ -8,6 +8,12 @@ const signup = async (req, res) => {
   try {
     let { email, fullName, password, age } = req.body;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      responseData(res, "Invalid email format", 400);
+      return;
+    }
+
     const checkEmail = await initModel.users.findOne({
       where: {
         email,
@@ -18,7 +24,8 @@ const signup = async (req, res) => {
       responseData(res, "Email already exists", 400);
       return;
     }
-    const createEmail = await initModel.users.create({
+
+    const formSignup = await initModel.users.create({
       email,
       full_name: fullName,
       pass_word: password,
@@ -27,18 +34,51 @@ const signup = async (req, res) => {
     });
 
     const formatForm = {
-      email: createEmail.email,
-      fullName: createEmail.full_name,
-      password: createEmail.pass_word,
-      age: createEmail.age,
+      email: formSignup.email,
+      fullName: formSignup.full_name,
+      password: formSignup.pass_word,
+      age: formSignup.age,
     };
 
     responseData(res, "Create email successfully", 200, formatForm);
+
   } catch (error) {
     return responseData(res, "Error processing request", 500);
   }
 };
 
-// Chưa khắc phục lỗi 400 khi FE nhập ký tự, chưa làm kiểm tra định dạng email.
+const login = async (req, res) => {
+  const { email, password} = req.body;
 
-export { signup };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      responseData(res, "Invalid email format", 400);
+      return;
+    }
+   
+  const checkEmail = await initModel.users.findOne({
+    where: {
+      email,
+    }
+  })
+
+  if(!checkEmail){
+    responseData(res, "Email is incorrect", 400);
+    return;
+  }
+  
+  if(checkEmail.pass_word != password){
+    responseData(res, "Password is incorrect", 400);
+    return;
+
+  }
+
+  const formatForm = {
+    email: checkEmail.email,
+    password: checkEmail.pass_word,
+  };
+
+  responseData(res, "Login successfully", 200, formatForm);
+};
+
+export { signup, login };
