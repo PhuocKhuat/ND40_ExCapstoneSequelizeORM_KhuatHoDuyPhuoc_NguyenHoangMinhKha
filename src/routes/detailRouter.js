@@ -1,8 +1,10 @@
 import express from 'express';
-import { getImgInfoAndCreator } from '../controllers/detailController.js';
+import { getCommentInfo, getImgInfoAndCreator } from '../controllers/detailController.js';
 
 const detailRouter = express.Router();
 
-detailRouter.get("/get-img-info-and-creator/:idImg", getImgInfoAndCreator);
+detailRouter.get("/get-img-info-and-creator/:imgId", getImgInfoAndCreator);
+
+detailRouter.get("/get-comment-info/:imgId", getCommentInfo);
 
 export default detailRouter;

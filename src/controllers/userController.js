@@ -43,6 +43,7 @@ const signup = async (req, res) => {
     responseData(res, "Create email successfully", 200, formatForm);
 
   } catch (error) {
+    
     return responseData(res, "Error processing request", 500);
   }
 };
