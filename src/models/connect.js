@@ -1,13 +1,14 @@
 import { Sequelize } from "sequelize";
+import config from "../configs/config.js";
 
 const connectSequelize = new Sequelize(
-  "db_capstone_express_orm",
-  "root",
-  "nhungkhuong24012001",
+  config.database,
+  config.user,
+  config.password,
   {
-    host: "localhost",
-    port: "3307",
-    dialect: "mysql",
+    host: config.host,
+    port: config.port,
+    dialect: config.dialect,
   }
 );
 

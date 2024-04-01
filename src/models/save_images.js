@@ -25,6 +25,10 @@ export default class save_images extends Model {
     date_save: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    is_saved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
     }
   }, {
     sequelize,

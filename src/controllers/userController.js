@@ -49,7 +49,8 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password} = req.body;
+  try {
+    const { email, password} = req.body;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -80,6 +81,11 @@ const login = async (req, res) => {
   };
 
   responseData(res, "Login successfully", 200, formatForm);
+
+  } catch (error) {
+
+    return responseData(res, 500, "Error processing request");
+  }
 };
 
 export { signup, login };
