@@ -1,10 +1,10 @@
 import express from 'express';
 import useRouter from './userRouter.js';
-import detailRouter from './detailRouter.js';
+import imageRouter from './imageRouter.js';
 
 const rootRouter = express.Router();
 
 rootRouter.use("/user", useRouter);
-rootRouter.use("/detail", detailRouter);
+rootRouter.use("/image", imageRouter);
 
 export default rootRouter;
