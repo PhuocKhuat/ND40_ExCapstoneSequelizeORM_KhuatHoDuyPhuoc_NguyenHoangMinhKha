@@ -1,6 +1,7 @@
 import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
+import sequelize from 'sequelize';
 
 const initModel = initModels(connectSequelize);
 
@@ -61,84 +62,143 @@ const getCommentInfo = async (req, res) => {
 
     responseData(res, "Proceed successfully", 200, formatComment);
   } catch (error) {
-
     return responseData(res, 500, "Error processing request");
   }
 };
 
-const getSavedImgInfo = async(req, res)=>{
+const getSavedImgInfo = async (req, res) => {
   try {
     const { imgId } = req.params;
 
-  const checkImgId = await initModel.save_images.findOne({
-    where:{
-      img_id: imgId
-    },
-    include: ["user", "img"],
-  });
+    const checkImgId = await initModel.save_images.findOne({
+      where: {
+        img_id: imgId,
+      },
+      include: ["user", "img"],
+    });
 
-  if(!checkImgId){
-    responseData(res, "Image id not found", 404);
-    return;
-  }
-  
-  if(checkImgId.is_saved == 1){
-    
-    const formatImgInfo = {
-      user:{
-        userId: checkImgId.user.user_id,
-        email: checkImgId.user.email,
-        fullName: checkImgId.user.full_name,
-        age: checkImgId.user.age,
-        avatar: checkImgId.user.avatar,
-      },
-      image:{
-        imgId: checkImgId.img.img_id,
-        imgName: checkImgId.img.img_name,
-        imgUrl: checkImgId.img.img_url,
-        description: checkImgId.img.description,
-      },
-      dateSaved: new Date(),
-      isSaved: checkImgId.is_saved,
+    if (!checkImgId) {
+      responseData(res, "Image id not found", 404);
+      return;
     }
-    
-    responseData(res, "Image has been saved", 200, formatImgInfo);
-    return;
+
+    if (checkImgId.is_saved == 1) {
+      const formatImgInfo = {
+        user: {
+          userId: checkImgId.user.user_id,
+          email: checkImgId.user.email,
+          fullName: checkImgId.user.full_name,
+          age: checkImgId.user.age,
+          avatar: checkImgId.user.avatar,
+        },
+        image: {
+          imgId: checkImgId.img.img_id,
+          imgName: checkImgId.img.img_name,
+          imgUrl: checkImgId.img.img_url,
+          description: checkImgId.img.description,
+        },
+        dateSaved: new Date(),
+        isSaved: checkImgId.is_saved,
+      };
+
+      responseData(res, "Image has been saved", 200, formatImgInfo);
+      return;
+    }
+
+    const updateSave = await checkImgId.update({
+      date_save: new Date(),
+      is_saved: 1,
+    });
+
+    const formatImgInfor = {
+      user: {
+        userId: updateSave.user.user_id,
+        email: updateSave.user.email,
+        fullName: updateSave.user.full_name,
+        age: updateSave.user.age,
+        avatar: updateSave.user.avatar,
+      },
+      image: {
+        imgId: updateSave.img.img_id,
+        imgName: updateSave.img.img_name,
+        imgUrl: updateSave.img.img_url,
+        description: updateSave.img.description,
+      },
+      dateSaved: updateSave.date_save,
+      isSaved: updateSave.is_saved,
+    };
+
+    responseData(res, "Image is being saved", 200, formatImgInfor);
+  } catch (error) {
+    return responseData(res, 500, "Error processing request");
   }
+};
 
-  const updateSave = await checkImgId.update({
-    date_save: new Date(),
-    is_saved: 1,
-  })
+const getImgList = async (req, res) => {
+  try {
+    const imgList = await initModel.images.findAll({
+      include: "user",
+    });
 
-  const formatImgInfor = {
-    user:{
-      userId: updateSave.user.user_id,
-      email: updateSave.user.email,
-      fullName: updateSave.user.full_name,
-      age: updateSave.user.age,
-      avatar: updateSave.user.avatar,
-    },
-    image:{
-      imgId: updateSave.img.img_id,
-      imgName: updateSave.img.img_name,
-      imgUrl: updateSave.img.img_url,
-      description: updateSave.img.description,
-    },
-    dateSaved: updateSave.date_save,
-    isSaved: updateSave.is_saved,
-  }
-  
-  responseData(res, "Image is being saved", 200, formatImgInfor);
+    const formatImgList = imgList.map((img) => ({
+      imgId: img.img_id,
+      imgName: img.img_name,
+      imgUrl: img.img_url,
+      description: img.description,
+      user: {
+        useId: img.user.user_id,
+        email: img.user.email,
+        fullName: img.user.full_name,
+        age: img.user.age,
+        avatar: img.user.avatar,
+        role: img.user.role,
+      },
+    }));
 
+    responseData(res, "Proceed successfully", 200, formatImgList);
   } catch (error) {
 
     return responseData(res, 500, "Error processing request");
   }
-}
-
-const getImgList = async (req, res) => {
-  res.send("abc");
 };
 
-export { getImgInfoAndCreator, getCommentInfo, getSavedImgInfo, getImgList };
+const searchImgListByName = async (req, res) => {
+  try {
+    let { nameImg } = req.params;
+
+  let { Op } = sequelize;
+
+  const searchImgList = await initModel.images.findAll({
+    where:{
+      img_name:{
+        [Op.like]: `%${nameImg}%`,
+      }
+    },
+    include: "user",
+  });
+
+  const formatImgList = searchImgList.map((img) => ({
+    imgId: img.img_id,
+    imgName: img.img_name,
+    imgUrl: img.img_url,
+    description: img.description,
+    user: {
+      useId: img.user.user_id,
+      email: img.user.email,
+      fullName: img.user.full_name,
+      age: img.user.age,
+      avatar: img.user.avatar,
+      role: img.user.role,
+    },
+  }));
+
+  responseData(res, "Proceed successfully", 200, formatImgList);
+
+  } catch (error) {
+   
+    return responseData(res, 500, "Error processing request");
+  }
+
+};
+
+export { getImgInfoAndCreator, getCommentInfo, getSavedImgInfo, getImgList, searchImgListByName };
