@@ -1,7 +1,8 @@
+import { decodeToken } from "../configs/jwt.js";
 import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
-import sequelize from 'sequelize';
+import sequelize from "sequelize";
 
 const initModel = initModels(connectSequelize);
 
@@ -157,7 +158,6 @@ const getImgList = async (req, res) => {
 
     responseData(res, "Proceed successfully", 200, formatImgList);
   } catch (error) {
-
     return responseData(res, 500, "Error processing request");
   }
 };
@@ -166,39 +166,59 @@ const searchImgListByName = async (req, res) => {
   try {
     let { nameImg } = req.params;
 
-  let { Op } = sequelize;
+    let { Op } = sequelize;
 
-  const searchImgList = await initModel.images.findAll({
-    where:{
-      img_name:{
-        [Op.like]: `%${nameImg}%`,
-      }
-    },
-    include: "user",
-  });
+    const searchImgList = await initModel.images.findAll({
+      where: {
+        img_name: {
+          [Op.like]: `%${nameImg}%`,
+        },
+      },
+      include: "user",
+    });
 
-  const formatImgList = searchImgList.map((img) => ({
-    imgId: img.img_id,
-    imgName: img.img_name,
-    imgUrl: img.img_url,
-    description: img.description,
-    user: {
-      useId: img.user.user_id,
-      email: img.user.email,
-      fullName: img.user.full_name,
-      age: img.user.age,
-      avatar: img.user.avatar,
-      role: img.user.role,
-    },
-  }));
+    const formatImgList = searchImgList.map((img) => ({
+      imgId: img.img_id,
+      imgName: img.img_name,
+      imgUrl: img.img_url,
+      description: img.description,
+      user: {
+        useId: img.user.user_id,
+        email: img.user.email,
+        fullName: img.user.full_name,
+        age: img.user.age,
+        avatar: img.user.avatar,
+        role: img.user.role,
+      },
+    }));
 
-  responseData(res, "Proceed successfully", 200, formatImgList);
-
+    responseData(res, "Proceed successfully", 200, formatImgList);
   } catch (error) {
-   
     return responseData(res, 500, "Error processing request");
   }
-
 };
 
-export { getImgInfoAndCreator, getCommentInfo, getSavedImgInfo, getImgList, searchImgListByName };
+const addImage = async (req, res)=>{
+  
+  let { token } = req.headers;
+
+  let { userId } = decodeToken(token);
+
+  let checkUser = await initModel.users.findOne({
+    where:{
+      user_id : userId,
+    }
+  })
+
+
+  res.send("abc");
+}
+
+export {
+  getImgInfoAndCreator,
+  getCommentInfo,
+  getSavedImgInfo,
+  getImgList,
+  searchImgListByName,
+  addImage
+};
