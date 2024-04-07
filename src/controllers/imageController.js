@@ -3,6 +3,7 @@ import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
 import sequelize from "sequelize";
+import compressImage from "../configs/compressImg.js";
 
 const initModel = initModels(connectSequelize);
 
@@ -199,28 +200,44 @@ const searchImgListByName = async (req, res) => {
 };
 
 const addImage = async (req, res) => {
-  let file = req.files;
+  try {
+    let files = req.files;
 
-  let { token } = req.headers;
+    let { token } = req.headers;
 
-  let { userId } = decodeToken(token);
+    let { userId } = decodeToken(token);
 
-  let checkUser = await initModel.images.findOne({
-    where: {
+    const imageObject = files.map((item) => ({
+      img_name: item.originalname,
+      img_url: item.filename,
+      description: item.size,
       user_id: userId,
-    },
-  });
+    }));
 
-  // checkUser.img_url = file.filename;
-  
-  await initModel.images.create( checkUser.dataValues, {
-    img_name: file.filename,
-    img_url:123,
-    description: 123,
-    user_id: userId
-  })
+    await initModel.images.bulkCreate(imageObject);
 
-  responseData(res, "Add image successfully", 200, file);
+    const formatImg = imageObject.map((image) => ({
+      imgName: image.img_name,
+      imgUrl: image.img_url,
+      description: image.description,
+      userId: image.user_id,
+    }));
+
+    const filenames = files.map((item) => item.filename);
+
+    // Nén từng ảnh một và lưu vào thư mục optimized
+    for (let filename of filenames) {
+      await compressImage(
+        process.cwd() + "/public/imgs/" + filename,
+        process.cwd() + "/public/optimized/" + filename
+      );
+    }
+
+    responseData(res, "Add image successfully", 200, formatImg);
+  } catch (error) {
+
+    return responseData(res, 500, "Error processing request");
+  }
 };
 
 export {
