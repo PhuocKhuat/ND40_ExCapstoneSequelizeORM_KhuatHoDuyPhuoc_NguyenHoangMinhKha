@@ -198,21 +198,30 @@ const searchImgListByName = async (req, res) => {
   }
 };
 
-const addImage = async (req, res)=>{
-  
+const addImage = async (req, res) => {
+  let file = req.files;
+
   let { token } = req.headers;
 
   let { userId } = decodeToken(token);
 
-  let checkUser = await initModel.users.findOne({
-    where:{
-      user_id : userId,
-    }
+  let checkUser = await initModel.images.findOne({
+    where: {
+      user_id: userId,
+    },
+  });
+
+  // checkUser.img_url = file.filename;
+  
+  await initModel.images.create( checkUser.dataValues, {
+    img_name: file.filename,
+    img_url:123,
+    description: 123,
+    user_id: userId
   })
 
-
-  res.send("abc");
-}
+  responseData(res, "Add image successfully", 200, file);
+};
 
 export {
   getImgInfoAndCreator,
@@ -220,5 +229,5 @@ export {
   getSavedImgInfo,
   getImgList,
   searchImgListByName,
-  addImage
+  addImage,
 };

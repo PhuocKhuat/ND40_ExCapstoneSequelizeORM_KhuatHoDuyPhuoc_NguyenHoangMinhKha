@@ -8,6 +8,7 @@ import {
   searchImgListByName,
 } from "../controllers/imageController.js";
 import { middleToken } from "../configs/jwt.js";
+import upload from "../configs/upload.js";
 
 const imageRouter = express.Router();
 
@@ -25,6 +26,6 @@ imageRouter.get("/get-image-list", getImgList);
 
 imageRouter.get("/search-img-list-by-name/:nameImg", searchImgListByName);
 
-imageRouter.post("/add-image", addImage);
+imageRouter.post("/add-image", upload.array("image"), addImage);
 
 export default imageRouter;
