@@ -1,7 +1,6 @@
 import express from "express";
 import {
-  addImage,
-  getCommentInfo, 
+  addImage, 
   getImgInfoAndCreator,
   getImgList,
   getSavedImgInfo,
@@ -17,8 +16,6 @@ imageRouter.get(
   middleToken,
   getImgInfoAndCreator
 );
-
-imageRouter.get("/get-comment-info/:imgId", getCommentInfo);
 
 imageRouter.get("/get-save-image/:imgId", middleToken, getSavedImgInfo);
 

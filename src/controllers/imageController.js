@@ -41,33 +41,6 @@ const getImgInfoAndCreator = async (req, res) => {
   }
 };
 
-const getCommentInfo = async (req, res) => {
-  try {
-    const { imgId } = req.params;
-
-    const checkImgId = await initModel.comments.findOne({
-      where: {
-        img_id: imgId,
-      },
-    });
-
-    if (!checkImgId) {
-      responseData(res, "Image Id not found", 200);
-      return;
-    }
-
-    const formatComment = {
-      commentId: checkImgId.comment_id,
-      dateCreated: checkImgId.date_created,
-      contentInfo: checkImgId.content_info,
-    };
-
-    responseData(res, "Proceed successfully", 200, formatComment);
-  } catch (error) {
-    return responseData(res, 500, "Error processing request");
-  }
-};
-
 const getSavedImgInfo = async (req, res) => {
   try {
     const { imgId } = req.params;
@@ -242,7 +215,6 @@ const addImage = async (req, res) => {
 
 export {
   getImgInfoAndCreator,
-  getCommentInfo,
   getSavedImgInfo,
   getImgList,
   searchImgListByName,
