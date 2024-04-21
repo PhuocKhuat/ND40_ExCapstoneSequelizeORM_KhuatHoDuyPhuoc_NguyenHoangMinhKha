@@ -8,6 +8,12 @@ const checkToken = (token) =>
 
 const decodeToken = (token) => jwt.decode(token);
 
+const createTokenRef = (data) =>
+  jwt.sign(data, "ADVANCED_SECRET_KEY", { expiresIn: "1y" });
+
+const checkTokenRef = (token) =>
+  jwt.verify(token, "ADVANCED_SECRET_KEY", (error, decode) => error);
+
 const middleToken = (req, res, next) => {
   let { token } = req.headers;
 
@@ -15,7 +21,12 @@ const middleToken = (req, res, next) => {
 
   check == null
     ? next()
-    : responseData(res, "The token has expired, wrong security key or is invalid", 401, check);
+    : responseData(
+        res,
+        "The token has expired, wrong security key or is invalid",
+        401,
+        check
+      );
 };
 
-export { createToken, decodeToken, checkToken, middleToken };
+export { createToken, decodeToken, checkToken, middleToken, createTokenRef, checkTokenRef };

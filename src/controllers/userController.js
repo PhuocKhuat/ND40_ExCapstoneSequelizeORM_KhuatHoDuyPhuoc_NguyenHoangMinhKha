@@ -2,7 +2,7 @@ import initModels from "../models/init-models.js";
 import connectSequelize from "../models/connect.js";
 import responseData from "../configs/responseData.js";
 import bcrypt from "bcrypt";
-import { checkToken, createToken, decodeToken } from "../configs/jwt.js";
+import { checkToken, createToken, createTokenRef, decodeToken } from "../configs/jwt.js";
 
 const initModel = initModels(connectSequelize);
 
@@ -73,6 +73,16 @@ const login = async (req, res) => {
 
     if (bcrypt.compareSync(password, checkEmail.pass_word)) {
       let token = createToken({ userId: checkEmail.dataValues.user_id });
+      
+      let tokenRef = createTokenRef({ userId: checkEmail.dataValues.user_id });
+
+      checkEmail.dataValues.refresh_token = tokenRef;
+
+      await initModel.users.update(checkEmail.dataValues, {
+        where:{
+          user_id: checkEmail.dataValues.user_id,
+        }
+      })
 
       let formatForm = {
         email: checkEmail.email,
@@ -90,6 +100,21 @@ const login = async (req, res) => {
     return responseData(res, 500, "Error processing request");
   }
 };
+
+const refreshToken = (req, res)=>{
+  let { token } = req.headers;
+
+  let errToken = checkToken(token);
+
+  if (errToken != null && errToken.name != "TokenExpiredError") {
+    responseData(res, "Token is not authorized", 401, "");
+    return;
+  }
+
+  let { userId } = decodeToken(token);
+  
+
+}
 
 const getCommentInfo = async (req, res) => {
   try {

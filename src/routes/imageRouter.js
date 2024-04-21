@@ -19,7 +19,7 @@ imageRouter.get(
 
 imageRouter.get("/get-save-image/:imgId", middleToken, getSavedImgInfo);
 
-imageRouter.get("/get-image-list", getImgList);
+imageRouter.get("/get-image-list", middleToken,getImgList);
 
 imageRouter.get("/search-img-list-by-name/:nameImg", searchImgListByName);
 

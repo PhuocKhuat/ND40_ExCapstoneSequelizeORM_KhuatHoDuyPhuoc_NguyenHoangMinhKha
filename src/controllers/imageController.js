@@ -121,18 +121,20 @@ const getImgList = async (req, res) => {
       imgUrl: img.img_url,
       description: img.description,
       user: {
-        useId: img.user.user_id,
-        email: img.user.email,
-        fullName: img.user.full_name,
-        age: img.user.age,
-        avatar: img.user.avatar,
-        role: img.user.role,
+        useId: img.user?.user_id,
+        email: img.user?.email,
+        fullName: img.user?.full_name,
+        age: img.user?.age,
+        avatar: img.user?.avatar,
+        role: img.user?.role,
       },
     }));
 
     responseData(res, "Proceed successfully", 200, formatImgList);
+    
   } catch (error) {
-    return responseData(res, 500, "Error processing request");
+
+    return responseData(res, "Error processing request", 500);
   }
 };
 
@@ -208,7 +210,6 @@ const addImage = async (req, res) => {
 
     responseData(res, "Add image successfully", 200, formatImg);
   } catch (error) {
-
     return responseData(res, 500, "Error processing request");
   }
 };
