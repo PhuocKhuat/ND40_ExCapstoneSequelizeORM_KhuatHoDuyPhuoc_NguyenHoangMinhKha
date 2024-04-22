@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import responseData from "./responseData.js";
 
-const createToken = (data) => jwt.sign(data, "SECRET_KEY", { expiresIn: "7d" });
+const createToken = (data) => jwt.sign(data, "SECRET_KEY", { expiresIn: "60d" });
 
 const checkToken = (token) =>
   jwt.verify(token, "SECRET_KEY", (err, decode) => err);

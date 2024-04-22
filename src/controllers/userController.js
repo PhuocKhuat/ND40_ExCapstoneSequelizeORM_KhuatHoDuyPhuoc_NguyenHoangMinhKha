@@ -2,7 +2,7 @@ import initModels from "../models/init-models.js";
 import connectSequelize from "../models/connect.js";
 import responseData from "../configs/responseData.js";
 import bcrypt from "bcrypt";
-import { checkToken, createToken, createTokenRef, decodeToken } from "../configs/jwt.js";
+import { checkToken, checkTokenRef, createToken, createTokenRef, decodeToken } from "../configs/jwt.js";
 
 const initModel = initModels(connectSequelize);
 
@@ -101,7 +101,7 @@ const login = async (req, res) => {
   }
 };
 
-const refreshToken = (req, res)=>{
+const refreshToken = async (req, res)=>{
   let { token } = req.headers;
 
   let errToken = checkToken(token);
@@ -113,7 +113,30 @@ const refreshToken = (req, res)=>{
 
   let { userId } = decodeToken(token);
   
+  let verifyToken = decodeToken(token);
 
+  let getUser = await initModel.users.findByPk(userId);
+
+  let errTokenRef = checkTokenRef(getUser.refresh_token);
+
+  if (errTokenRef != null) {
+    responseData(res, "Token is not authorized", 401, "");
+    return;
+  }
+
+  let { key } = decodeToken(getUser.dataValues.refresh_token);
+
+  if(verifyToken.key != key){
+    
+    responseData(res, "Token is not authorized", 401, "");
+    return;
+  }
+
+  let newToken = createToken({
+    userId: getUser.dataValues.user_id,
+  })
+
+  responseData(res, "", 200, newToken)
 }
 
 const getCommentInfo = async (req, res) => {
@@ -210,4 +233,4 @@ const saveCommentInfo = async (req, res) => {
   }
 };
 
-export { signup, login, getCommentInfo, saveCommentInfo };
+export { signup, login, getCommentInfo, saveCommentInfo, refreshToken };
