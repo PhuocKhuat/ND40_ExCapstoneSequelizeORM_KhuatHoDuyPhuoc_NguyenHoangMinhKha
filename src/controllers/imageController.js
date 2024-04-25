@@ -131,27 +131,30 @@ const getImgList = async (req, res) => {
     }));
 
     responseData(res, "Proceed successfully", 200, formatImgList);
-    
   } catch (error) {
-
     return responseData(res, "Error processing request", 500);
   }
 };
 
 const searchImgListByName = async (req, res) => {
   try {
-    let { nameImg } = req.params;
+    let { imgName } = req.query;
 
     let { Op } = sequelize;
 
     const searchImgList = await initModel.images.findAll({
       where: {
         img_name: {
-          [Op.like]: `%${nameImg}%`,
+          [Op.like]: `%${imgName}%`,
         },
       },
       include: "user",
     });
+
+    if (!searchImgList.length) {
+      responseData(res, "Image name not found", 404);
+      return;
+    }
 
     const formatImgList = searchImgList.map((img) => ({
       imgId: img.img_id,
@@ -170,6 +173,7 @@ const searchImgListByName = async (req, res) => {
 
     responseData(res, "Proceed successfully", 200, formatImgList);
   } catch (error) {
+    
     return responseData(res, 500, "Error processing request");
   }
 };

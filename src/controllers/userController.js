@@ -43,7 +43,7 @@ const signup = async (req, res) => {
       age: formSignup.age,
     };
 
-    responseData(res, "Create email successfully", 200, formatForm);
+    responseData(res, "Create account successfully", 200, formatForm);
   } catch (error) {
     return responseData(res, "Error processing request", 500);
   }
