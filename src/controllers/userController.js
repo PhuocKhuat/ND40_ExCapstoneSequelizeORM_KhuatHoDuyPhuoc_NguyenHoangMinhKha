@@ -143,31 +143,31 @@ const getCommentInfo = async (req, res) => {
   try {
     const { imgId } = req.params;
 
-    const checkImgId = await initModel.comments.findOne({
+    const checkImgId = await initModel.comments.findAll({
       where: {
         img_id: imgId,
       },
       include: "user",
     });
 
-    if (!checkImgId) {
-      responseData(res, "Image Id not found", 200);
+    if (checkImgId.length === 0) {
+      responseData(res, "Image Id not found", 404);
       return;
     }
 
-    const formatComment = {
-      commentId: checkImgId.comment_id,
-      dateCreated: checkImgId.date_created,
-      contentInfo: checkImgId.content_info,
+    const formatComment = checkImgId.map(comment => ({
+      commentId: comment.comment_id,
+      dateCreated: comment.date_created,
+      contentInfo: comment.content_info,
       user: {
-        userId: checkImgId.user.user_id,
-        email: checkImgId.user.email,
-        fullName: checkImgId.user.full_name,
-        age: checkImgId.user.age,
-        avatar: checkImgId.user.avatar,
-        role: checkImgId.user.role,
+        userId: comment.user.user_id,
+        email: comment.user.email,
+        fullName: comment.user.full_name,
+        age: comment.user.age,
+        avatar: comment.user.avatar,
+        role: comment.user.role,
       },
-    };
+    }));
 
     responseData(res, "Proceed successfully", 200, formatComment);
   } catch (error) {
