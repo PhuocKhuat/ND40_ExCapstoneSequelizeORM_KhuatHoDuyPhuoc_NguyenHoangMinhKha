@@ -42,56 +42,102 @@ const getImgInfoAndCreator = async (req, res) => {
 };
 
 const getSavedImgInfo = async (req, res) => {
-  const { imgId } = req.params;
+  try {
+    const { imgId } = req.params;
 
-  const checkImgId = await initModel.images.findOne({
-    where: {
-      img_id: imgId,
-    },
-    include: "user",
-  });
+    const { token } = req.headers;
 
-  if (!checkImgId) {
-    responseData(res, "Image id not found", 404, "");
-    return;
-  }
+    const { userId } = decodeToken(token);
 
-  const checkImgIdInSaveImage = await initModel.save_images.findOne({
-    where: {
-      img_id: imgId,
-    },
-  });
-
-  if (!checkImgIdInSaveImage) {
-    const updateSave = await initModel.save_images.create({
-      user_id: checkImgId.user_id,
-      img_id: imgId,
-      date_save: new Date(),
-      is_saved: 1,
+    const checkImgId = await initModel.images.findOne({
+      where: {
+        img_id: imgId,
+      },
+      include: "user",
     });
 
-    const formatImgInfor = {
-      user: {
-        userId: updateSave.user_id,
-        email: checkImgId.user.email,
-        fullName: checkImgId.user.full_name,
-        age: checkImgId.user.age,
-        avatar: checkImgId.user.avatar,
-      },
-      image: {
-        imgId: checkImgId.img_id,
-        imgName: checkImgId.img_name,
-        imgUrl: checkImgId.img_url,
-        description: checkImgId.description,
-      },
-      dateSaved: updateSave.date_save,
-      isSaved: updateSave.is_saved,
-    };
+    if (!checkImgId) {
+      responseData(res, "Image id not found", 404, "");
+      return;
+    }
 
-    responseData(res, "Image is being saved", 200, formatImgInfor);
-    return;
+    const checkImgIdInSaveImage = await initModel.save_images.findOne({
+      where: {
+        img_id: imgId,
+      },
+    });
+
+    const checkUserIdInSaveImage = await initModel.save_images.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    const checkIdInSaveImage = await initModel.save_images.findOne({
+      where: {
+        user_id: userId,
+        img_id: imgId,
+      },
+    });
+
+    if (!checkImgIdInSaveImage && checkUserIdInSaveImage) {
+      const updateSave = await initModel.save_images.create({
+        user_id: userId,
+        img_id: imgId,
+        date_save: new Date(),
+        is_saved: 1,
+      });
+      const formatImgInfor = {
+        user: {
+          userId: userId,
+          email: checkImgId.user.email,
+          fullName: checkImgId.user.full_name,
+          age: checkImgId.user.age,
+          avatar: checkImgId.user.avatar,
+        },
+        image: {
+          imgId: checkImgId.img_id,
+          imgName: checkImgId.img_name,
+          imgUrl: checkImgId.img_url,
+          description: checkImgId.description,
+        },
+        dateSaved: updateSave.date_save,
+        isSaved: updateSave.is_saved,
+      };
+
+      responseData(res, "Image is being saved", 200, formatImgInfor);
+    } else if (checkIdInSaveImage) {
+      responseData(res, "Image has been saved", 200);
+    } else if (!checkIdInSaveImage) {
+      const updateSave = await initModel.save_images.create({
+        user_id: userId,
+        img_id: imgId,
+        date_save: new Date(),
+        is_saved: 1,
+      });
+      const formatImgInfor = {
+        user: {
+          userId: userId,
+          email: checkImgId.user.email,
+          fullName: checkImgId.user.full_name,
+          age: checkImgId.user.age,
+          avatar: checkImgId.user.avatar,
+        },
+        image: {
+          imgId: checkImgId.img_id,
+          imgName: checkImgId.img_name,
+          imgUrl: checkImgId.img_url,
+          description: checkImgId.description,
+        },
+        dateSaved: updateSave.date_save,
+        isSaved: updateSave.is_saved,
+      };
+
+      responseData(res, "Image is being saved", 200, formatImgInfor);
+    }
+  } catch (error) {
+    console.log("🚀 ~ getSavedImgInfo ~ error:", error);
   }
-  responseData(res, "Image has been saved", 200);
 };
 
 const getImgList = async (req, res) => {
