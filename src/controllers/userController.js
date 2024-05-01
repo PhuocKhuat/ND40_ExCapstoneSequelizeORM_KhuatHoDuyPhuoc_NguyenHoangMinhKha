@@ -2,7 +2,13 @@ import initModels from "../models/init-models.js";
 import connectSequelize from "../models/connect.js";
 import responseData from "../configs/responseData.js";
 import bcrypt from "bcrypt";
-import { checkToken, checkTokenRef, createToken, createTokenRef, decodeToken } from "../configs/jwt.js";
+import {
+  checkToken,
+  checkTokenRef,
+  createToken,
+  createTokenRef,
+  decodeToken,
+} from "../configs/jwt.js";
 
 const initModel = initModels(connectSequelize);
 
@@ -71,18 +77,21 @@ const login = async (req, res) => {
       return;
     }
 
-    if (bcrypt.compareSync(password, checkEmail.pass_word)) {
+    if (
+      bcrypt.compareSync(password, checkEmail.pass_word) ||
+      password == checkEmail.pass_word
+    ) {
       let token = createToken({ userId: checkEmail.dataValues.user_id });
-      
+
       let tokenRef = createTokenRef({ userId: checkEmail.dataValues.user_id });
 
       checkEmail.dataValues.refresh_token = tokenRef;
 
       await initModel.users.update(checkEmail.dataValues, {
-        where:{
+        where: {
           user_id: checkEmail.dataValues.user_id,
-        }
-      })
+        },
+      });
 
       let formatForm = {
         email: checkEmail.email,
@@ -96,12 +105,11 @@ const login = async (req, res) => {
 
     responseData(res, "Password is incorrect", 400);
   } catch (error) {
-
     return responseData(res, 500, "Error processing request");
   }
 };
 
-const refreshToken = async (req, res)=>{
+const refreshToken = async (req, res) => {
   let { token } = req.headers;
 
   let errToken = checkToken(token);
@@ -112,7 +120,7 @@ const refreshToken = async (req, res)=>{
   }
 
   let { userId } = decodeToken(token);
-  
+
   let verifyToken = decodeToken(token);
 
   let getUser = await initModel.users.findByPk(userId);
@@ -126,18 +134,17 @@ const refreshToken = async (req, res)=>{
 
   let { key } = decodeToken(getUser.dataValues.refresh_token);
 
-  if(verifyToken.key != key){
-    
+  if (verifyToken.key != key) {
     responseData(res, "Token is not authorized", 401, "");
     return;
   }
 
   let newToken = createToken({
     userId: getUser.dataValues.user_id,
-  })
+  });
 
-  responseData(res, "", 200, newToken)
-}
+  responseData(res, "", 200, newToken);
+};
 
 const getCommentInfo = async (req, res) => {
   try {
@@ -155,7 +162,7 @@ const getCommentInfo = async (req, res) => {
       return;
     }
 
-    const formatComment = checkImgId.map(comment => ({
+    const formatComment = checkImgId.map((comment) => ({
       commentId: comment.comment_id,
       dateCreated: comment.date_created,
       contentInfo: comment.content_info,
@@ -179,58 +186,77 @@ const saveCommentInfo = async (req, res) => {
   try {
     let { comment, imgId } = req.body;
 
-  let { token } = req.headers;
+    let { token } = req.headers;
 
-  if (checkToken(token) == null) {
-    let { userId } = decodeToken(token);
+    if (checkToken(token) == null) {
+      let { userId } = decodeToken(token);
 
-    let newComment = await initModel.comments.create({
-      date_created: new Date(),
-      content_info: comment,
-      user_id: userId,
-      img_id: imgId,
-    });
-
-    let relationship = await initModel.comments.findOne({
-      where: {
+      let newComment = await initModel.comments.create({
+        date_created: new Date(),
+        content_info: comment,
         user_id: userId,
-      },
-      include: ["user", "img"]
-    });
+        img_id: imgId,
+      });
 
-    let formatComment = {
-      commentId: newComment.comment_id,
-      dateCreated: newComment.date_created,
-      contentInfo: newComment.content_info,
-      user: {
-        userId: relationship.user.user_id,
-        email: relationship.user.email,
-        fullName: relationship.user.full_name,
-        age: relationship.user.age,
-        avatar: relationship.user.avatar,
-        role: relationship.user.role,
-      },
-      image:{
-        imgId: relationship.img.img_id,
-        imgName: relationship.img.img_name,
-        imgUrl: relationship.img.img_url,
-        description: relationship.img.description
-      }
+      let relationship = await initModel.comments.findOne({
+        where: {
+          user_id: userId,
+        },
+        include: ["user", "img"],
+      });
 
+      let formatComment = {
+        commentId: newComment.comment_id,
+        dateCreated: newComment.date_created,
+        contentInfo: newComment.content_info,
+        user: {
+          userId: relationship.user.user_id,
+          email: relationship.user.email,
+          fullName: relationship.user.full_name,
+          age: relationship.user.age,
+          avatar: relationship.user.avatar,
+          role: relationship.user.role,
+        },
+        image: {
+          imgId: relationship.img.img_id,
+          imgName: relationship.img.img_name,
+          imgUrl: relationship.img.img_url,
+          description: relationship.img.description,
+        },
+      };
+      responseData(res, "Add comment successfully", 200, formatComment);
+      return;
     }
-    responseData(res, "Add comment successfully", 200, formatComment);
-    return;
-
-  }
-  responseData(
-    res,
-    "The token has expired, wrong security key or is invalid",
-    401
-  );
+    responseData(
+      res,
+      "The token has expired, wrong security key or is invalid",
+      401
+    );
   } catch (error) {
-
     return responseData(res, 500, "Error processing request");
   }
 };
 
-export { signup, login, getCommentInfo, saveCommentInfo, refreshToken };
+//GET INFO USER
+const getInfoUser = async (req, res) => {
+  let { token } = req.headers;
+
+  let errToken = checkToken(token);
+
+  if (errToken == null) {
+    let { userId } = decodeToken(token);
+    let getUserId = await initModel.users.findByPk(userId);
+    responseData(res, "Get info user success", 200, getUserId);
+    return;
+  }
+  responseData(res, "Idvalid authenication", 401, "");
+};
+
+export {
+  signup,
+  login,
+  getCommentInfo,
+  saveCommentInfo,
+  refreshToken,
+  getInfoUser,
+};

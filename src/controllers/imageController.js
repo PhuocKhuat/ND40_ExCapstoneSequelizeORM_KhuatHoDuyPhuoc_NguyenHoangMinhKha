@@ -1,4 +1,4 @@
-import { decodeToken } from "../configs/jwt.js";
+import { checkToken, decodeToken } from "../configs/jwt.js";
 import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
@@ -248,10 +248,84 @@ const addImage = async (req, res) => {
   }
 };
 
+//GET LIST SAVE IMG BY USER ID
+const getListSaveImgByUserId = async (req, res) => {
+  let { token } = req.headers;
+  let errToken = checkToken(token);
+
+  if (errToken == null) {
+    let { userId } = decodeToken(token);
+    let getListSaveImg = await initModel.save_images.findOne({
+      where: {
+        user_id: userId,
+      },
+      include: "img",
+      // include: "save_images",
+    });
+    responseData(
+      res,
+      "Get list save img by user id success",
+      200,
+      getListSaveImg
+    );
+    return;
+  }
+  responseData(res, "Invalid authenication", 401, "");
+};
+
+//GET LIST IMAGE
+const getListImgByUserId = async (req, res) => {
+  let { token } = req.headers;
+  let errToken = checkToken(token);
+
+  if (errToken == null) {
+    let { userId } = decodeToken(token);
+    let getListImg = await initModel.images.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+    responseData(res, "Get list image by userId success", 200, getListImg);
+    return;
+  }
+  responseData(res, "Idvalid authenication", 401, "");
+};
+
+//DELETE IMAGE
+const deleteImgByImgId = async (req, res) => {
+  let { imgId } = req.params;
+  let { token } = req.headers;
+  let errToken = checkToken(token);
+
+  if (errToken == null) {
+    await initModel.save_images.destroy({
+      where: {
+        img_id: imgId,
+      },
+    });
+    await initModel.comments.destroy({
+      where: {
+        img_id: imgId,
+      },
+    });
+    await initModel.images.destroy({
+      where: {
+        img_id: imgId,
+      },
+    });
+    responseData(res, "Delete image success", 200, "");
+    return;
+  }
+  responseData(res, "Idvalid authenication", 401, "");
+};
+
 export {
   getImgInfoAndCreator,
   getSavedImgInfo,
   getImgList,
   searchImgListByName,
   addImage,
+  getListSaveImgByUserId,
+  getListImgByUserId,
+  deleteImgByImgId,
 };
