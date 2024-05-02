@@ -95,6 +95,7 @@ const login = async (req, res) => {
         fullName: checkEmail.full_name,
         password: password,
         age: checkEmail.age,
+        role: checkEmail.role,
         token,
       };
 
@@ -268,9 +269,22 @@ const updateUserInfo = async (req, res) => {
 
     responseData(res, "Update successfully", 200, format);
   } catch (error) {
-    
     console.log("🚀 ~ updateUserInfo ~ error:", error);
   }
+};
+
+const getInfoUser = async (req, res) => {
+  let { token } = req.headers;
+
+  let errToken = checkToken(token);
+
+  if (errToken == null) {
+    let { userId } = decodeToken(token);
+    let getUserId = await initModel.users.findByPk(userId);
+    responseData(res, "Get info user success", 200, getUserId);
+    return;
+  }
+  responseData(res, "Idvalid authenication", 401, "");
 };
 
 export {
@@ -280,4 +294,5 @@ export {
   saveCommentInfo,
   refreshToken,
   updateUserInfo,
+  getInfoUser
 };

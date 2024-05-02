@@ -1,8 +1,11 @@
 import express from "express";
 import {
   addImage,
+  deleteImgByImgId,
   getImgInfoAndCreator,
   getImgList,
+  getListImgByUserId,
+  getListSaveImgByUserId,
   getSavedImgInfo,
   searchImgListByName,
 } from "../controllers/imageController.js";
@@ -19,10 +22,16 @@ imageRouter.get(
 
 imageRouter.get("/get-save-image/:imgId", middleToken, getSavedImgInfo);
 
-imageRouter.get("/get-image-list", middleToken,getImgList);
+imageRouter.get("/get-image-list", getImgList);
 
 imageRouter.get("/search-img-list-by-name", searchImgListByName);
 
 imageRouter.post("/add-image", upload.array("image"), addImage);
+
+imageRouter.get("/get-list-save-img", middleToken, getListSaveImgByUserId);
+
+imageRouter.get("/get-list-image", middleToken, getListImgByUserId);
+
+imageRouter.delete("/delete-img/:imgId", middleToken, deleteImgByImgId);
 
 export default imageRouter;

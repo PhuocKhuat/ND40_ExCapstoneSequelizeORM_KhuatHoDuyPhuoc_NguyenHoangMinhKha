@@ -1,5 +1,12 @@
-import express from 'express';
-import { getCommentInfo, login, refreshToken, saveCommentInfo, signup, updateUserInfo } from '../controllers/userController.js';
+import express from "express";
+import {
+  getCommentInfo,
+  getInfoUser,
+  login,
+  refreshToken,
+  saveCommentInfo,
+  signup, updateUserInfo,
+} from "../controllers/userController.js";
 
 const useRouter = express.Router();
 
@@ -14,5 +21,7 @@ useRouter.post("/save-comment-info", saveCommentInfo);
 useRouter.post("/refresh-token", refreshToken);
 
 useRouter.put("/update-user-info", updateUserInfo);
+
+useRouter.get("/info-user", getInfoUser);
 
 export default useRouter;
