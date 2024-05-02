@@ -45,7 +45,7 @@ const signup = async (req, res) => {
     const formatForm = {
       email: formSignup.email,
       fullName: formSignup.full_name,
-      password: formSignup.pass_word,
+      password,
       age: formSignup.age,
     };
 
@@ -92,7 +92,9 @@ const login = async (req, res) => {
 
       let formatForm = {
         email: checkEmail.email,
+        fullName: checkEmail.full_name,
         password: password,
+        age: checkEmail.age,
         token,
       };
 
