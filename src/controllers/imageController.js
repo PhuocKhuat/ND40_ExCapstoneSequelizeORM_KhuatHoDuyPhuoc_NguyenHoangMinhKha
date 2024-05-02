@@ -193,12 +193,12 @@ const searchImgListByName = async (req, res) => {
       imgUrl: img.img_url,
       description: img.description,
       user: {
-        useId: img.user.user_id,
-        email: img.user.email,
-        fullName: img.user.full_name,
-        age: img.user.age,
-        avatar: img.user.avatar,
-        role: img.user.role,
+        useId: img.user?.user_id,
+        email: img.user?.email,
+        fullName: img.user?.full_name,
+        age: img.user?.age,
+        avatar: img.user?.avatar,
+        role: img.user?.role,
       },
     }));
 
@@ -250,73 +250,123 @@ const addImage = async (req, res) => {
 
 //GET LIST SAVE IMG BY USER ID
 const getListSaveImgByUserId = async (req, res) => {
-  let { token } = req.headers;
-  let errToken = checkToken(token);
+  try {
+    let { token } = req.headers;
+    let errToken = checkToken(token);
 
-  if (errToken == null) {
-    let { userId } = decodeToken(token);
-    let getListSaveImg = await initModel.save_images.findOne({
-      where: {
-        user_id: userId,
-      },
-      include: "img",
-      // include: "save_images",
-    });
-    responseData(
-      res,
-      "Get list save img by user id success",
-      200,
-      getListSaveImg
-    );
-    return;
+    if (errToken === null) {
+      let { userId } = decodeToken(token);
+      let getListSavedImg = await initModel.save_images.findAll({
+        where: {
+          user_id: userId,
+        },
+        include: ["user", "img"],
+      });
+
+      const format = getListSavedImg.map((img) => ({
+        user: {
+          userId: img.user_id,
+          email: img.user.email,
+          fullName: img.user.full_name,
+          age: img.user.age,
+          avatar: img.user.avatar,
+          role: img.user.role,
+        },
+        img: {
+          imgId: img.img.img_id,
+          imgName: img.img.img_name,
+          imgUrl: img.img.img_url,
+          description: img.img.description,
+        },
+        dateSaved: img.date_save,
+        isSaved: img.is_saved,
+      }));
+
+      responseData(res, "Get list save img by user id success", 200, format);
+      return;
+    }
+    responseData(res, "Invalid authenication", 401, "");
+  } catch (error) {
+    console.log("🚀 ~ getListSaveImgByUserId ~ error:", error);
   }
-  responseData(res, "Invalid authenication", 401, "");
 };
 
 //GET LIST IMAGE
 const getListImgByUserId = async (req, res) => {
-  let { token } = req.headers;
-  let errToken = checkToken(token);
+  try {
+    let { token } = req.headers;
+    let errToken = checkToken(token);
 
-  if (errToken == null) {
-    let { userId } = decodeToken(token);
-    let getListImg = await initModel.images.findOne({
-      where: {
-        user_id: userId,
-      },
-    });
-    responseData(res, "Get list image by userId success", 200, getListImg);
-    return;
+    if (errToken == null) {
+      let { userId } = decodeToken(token);
+
+      let getImgList = await initModel.images.findAll({
+        where: {
+          user_id: userId,
+        },
+        include: "user",
+      });
+
+      const format = getImgList.map((img) => ({
+        imgId: img.img_id,
+        imgName: img.img_name,
+        imgUrl: img.img_url,
+        description: img.description,
+        user: {
+          useId: img.user?.user_id,
+          email: img.user?.email,
+          fullName: img.user?.full_name,
+          age: img.user?.age,
+          avatar: img.user?.avatar,
+          role: img.user?.role,
+        },
+      }));
+
+      responseData(res, "Get list image by userId successfully", 200, format);
+      return;
+    }
+    responseData(res, "Token has expired or is invalid", 401, "");
+  } catch (error) {
+    console.log("🚀 ~ getListImgByUserId ~ error:", error);
   }
-  responseData(res, "Idvalid authenication", 401, "");
 };
 
 //DELETE IMAGE
 const deleteImgByImgId = async (req, res) => {
-  let { imgId } = req.params;
-  let { token } = req.headers;
-  let errToken = checkToken(token);
+  try {
+    let { imgId } = req.params;
 
-  if (errToken == null) {
-    await initModel.save_images.destroy({
-      where: {
-        img_id: imgId,
-      },
-    });
-    await initModel.comments.destroy({
-      where: {
-        img_id: imgId,
-      },
-    });
-    await initModel.images.destroy({
-      where: {
-        img_id: imgId,
-      },
-    });
-    responseData(res, "Delete image success", 200, "");
-    return;
+    let { token } = req.headers;
+    let errToken = checkToken(token);
+
+    if (errToken === null) {
+      await initModel.save_images.destroy({
+        where: {
+          img_id: imgId,
+        },
+      });
+
+      await initModel.comments.destroy({
+        where: {
+          img_id: imgId,
+        },
+      });
+
+      await initModel.images.destroy({
+        where: {
+          img_id: imgId,
+        },
+      });
+
+      responseData(res, "Delete image successfully", 200);
+      return;
+    }
+    responseData(res, "Token has expired or is invalid", 401);
+    
+  } catch (error) {
+    console.log("🚀 ~ deleteImgByImgId ~ error:", error);
+    
   }
-  responseData(res, "Idvalid authenication", 401, "");
 };
 
 export {

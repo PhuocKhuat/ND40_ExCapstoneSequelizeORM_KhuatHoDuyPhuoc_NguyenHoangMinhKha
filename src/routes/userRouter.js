@@ -1,11 +1,12 @@
 import express from "express";
 import {
   getCommentInfo,
-  getInfoUser,
+  getUserInfo,
   login,
   refreshToken,
   saveCommentInfo,
-  signup, updateUserInfo,
+  signup,
+  updateUserInfo,
 } from "../controllers/userController.js";
 
 const useRouter = express.Router();
@@ -22,6 +23,6 @@ useRouter.post("/refresh-token", refreshToken);
 
 useRouter.put("/update-user-info", updateUserInfo);
 
-useRouter.get("/info-user", getInfoUser);
+useRouter.get("/get-user-info", getUserInfo);
 
 export default useRouter;

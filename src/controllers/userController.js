@@ -273,18 +273,34 @@ const updateUserInfo = async (req, res) => {
   }
 };
 
-const getInfoUser = async (req, res) => {
-  let { token } = req.headers;
+const getUserInfo = async (req, res) => {
+  try {
+    let { token } = req.headers;
 
-  let errToken = checkToken(token);
+    let errToken = checkToken(token);
 
-  if (errToken == null) {
-    let { userId } = decodeToken(token);
-    let getUserId = await initModel.users.findByPk(userId);
-    responseData(res, "Get info user success", 200, getUserId);
-    return;
+    if (errToken === null) {
+      let { userId } = decodeToken(token);
+
+      let getUserId = await initModel.users.findByPk(userId);
+
+      const format = {
+        userId: getUserId.user_id,
+        email: getUserId.email,
+        fullName: getUserId.full_name,
+        age: getUserId.age,
+        avatar: getUserId.avatar,
+        role: getUserId.role,
+      };
+
+      responseData(res, "Get info user successfully", 200, format);
+      return;
+    }
+    responseData(res, "Token has expired or is invalid", 401);
+  } catch (error) {
+    
+    console.log("🚀 ~ getUserInfo ~ error:", error);
   }
-  responseData(res, "Idvalid authenication", 401, "");
 };
 
 export {
@@ -294,5 +310,5 @@ export {
   saveCommentInfo,
   refreshToken,
   updateUserInfo,
-  getInfoUser
+  getUserInfo,
 };
