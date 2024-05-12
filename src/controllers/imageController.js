@@ -248,7 +248,7 @@ const addImage = async (req, res) => {
   }
 };
 
-//GET LIST SAVE IMG BY USER ID
+//GET LIST SAVED IMAGE BY USER ID
 const getListSaveImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
@@ -256,6 +256,7 @@ const getListSaveImgByUserId = async (req, res) => {
 
     if (errToken === null) {
       let { userId } = decodeToken(token);
+      
       let getListSavedImg = await initModel.save_images.findAll({
         where: {
           user_id: userId,
@@ -291,7 +292,7 @@ const getListSaveImgByUserId = async (req, res) => {
   }
 };
 
-//GET LIST IMAGE
+//GET LIST CREATED IMAGE BY USER ID
 const getListImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
