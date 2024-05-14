@@ -2,7 +2,7 @@ import { checkToken, decodeToken } from "../configs/jwt.js";
 import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
-import sequelize from "sequelize";
+import sequelize, { where } from "sequelize";
 import compressImage from "../configs/compressImg.js";
 
 const initModel = initModels(connectSequelize);
@@ -61,18 +61,6 @@ const getSavedImgInfo = async (req, res) => {
       return;
     }
 
-    const checkImgIdInSaveImage = await initModel.save_images.findOne({
-      where: {
-        img_id: imgId,
-      },
-    });
-
-    const checkUserIdInSaveImage = await initModel.save_images.findOne({
-      where: {
-        user_id: userId,
-      },
-    });
-
     const checkIdInSaveImage = await initModel.save_images.findOne({
       where: {
         user_id: userId,
@@ -80,61 +68,39 @@ const getSavedImgInfo = async (req, res) => {
       },
     });
 
-    if (!checkImgIdInSaveImage && checkUserIdInSaveImage) {
-      const updateSave = await initModel.save_images.create({
-        user_id: userId,
-        img_id: imgId,
-        date_save: new Date(),
-        is_saved: 1,
-      });
-      const formatImgInfor = {
-        user: {
-          userId: userId,
-          email: checkImgId.user.email,
-          fullName: checkImgId.user.full_name,
-          age: checkImgId.user.age,
-          avatar: checkImgId.user.avatar,
-        },
-        image: {
-          imgId: checkImgId.img_id,
-          imgName: checkImgId.img_name,
-          imgUrl: checkImgId.img_url,
-          description: checkImgId.description,
-        },
-        dateSaved: updateSave.date_save,
-        isSaved: updateSave.is_saved,
-      };
-
-      responseData(res, "Image is being saved", 200, formatImgInfor);
-    } else if (checkIdInSaveImage) {
-      responseData(res, "Image has been saved", 200);
-    } else if (!checkIdInSaveImage) {
-      const updateSave = await initModel.save_images.create({
-        user_id: userId,
-        img_id: imgId,
-        date_save: new Date(),
-        is_saved: 1,
-      });
-      const formatImgInfor = {
-        user: {
-          userId: userId,
-          email: checkImgId.user.email,
-          fullName: checkImgId.user.full_name,
-          age: checkImgId.user.age,
-          avatar: checkImgId.user.avatar,
-        },
-        image: {
-          imgId: checkImgId.img_id,
-          imgName: checkImgId.img_name,
-          imgUrl: checkImgId.img_url,
-          description: checkImgId.description,
-        },
-        dateSaved: updateSave.date_save,
-        isSaved: updateSave.is_saved,
-      };
-
-      responseData(res, "Image is being saved", 200, formatImgInfor);
+    if (checkIdInSaveImage) {
+      if (checkIdInSaveImage.dataValues.is_saved === true) {
+        responseData(res, "Image has been saved", 200, checkIdInSaveImage);
+        return;
+      }
     }
+
+    const updateSave = await initModel.save_images.create({
+      user_id: userId,
+      img_id: imgId,
+      date_save: new Date(),
+      is_saved: 1,
+    });
+
+    const formatImgInfor = {
+      user: {
+        userId: userId,
+        email: checkImgId.user.email,
+        fullName: checkImgId.user.full_name,
+        age: checkImgId.user.age,
+        avatar: checkImgId.user.avatar,
+      },
+      image: {
+        imgId: checkImgId.img_id,
+        imgName: checkImgId.img_name,
+        imgUrl: checkImgId.img_url,
+        description: checkImgId.description,
+      },
+      dateSaved: updateSave.date_save,
+      isSaved: updateSave.is_saved,
+    };
+
+    responseData(res, "Image is being saved", 200, formatImgInfor);
   } catch (error) {
     console.log("🚀 ~ getSavedImgInfo ~ error:", error);
   }
@@ -248,7 +214,7 @@ const addImage = async (req, res) => {
   }
 };
 
-//GET LIST SAVED IMAGE BY USER ID
+// GET LIST SAVED IMAGE BY USER ID
 const getListSaveImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
@@ -256,7 +222,7 @@ const getListSaveImgByUserId = async (req, res) => {
 
     if (errToken === null) {
       let { userId } = decodeToken(token);
-      
+
       let getListSavedImg = await initModel.save_images.findAll({
         where: {
           user_id: userId,
@@ -292,7 +258,7 @@ const getListSaveImgByUserId = async (req, res) => {
   }
 };
 
-//GET LIST CREATED IMAGE BY USER ID
+// GET LIST CREATED IMAGE BY USER ID
 const getListImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
@@ -326,13 +292,13 @@ const getListImgByUserId = async (req, res) => {
       responseData(res, "Get list image by userId successfully", 200, format);
       return;
     }
-    responseData(res, "Token has expired or is invalid", 401, "");
+    responseData(res, "Token has expired or is invalid", 401);
   } catch (error) {
     console.log("🚀 ~ getListImgByUserId ~ error:", error);
   }
 };
 
-//DELETE IMAGE
+// DELETE IMAGE
 const deleteImgByImgId = async (req, res) => {
   try {
     let { imgId } = req.params;
@@ -353,21 +319,57 @@ const deleteImgByImgId = async (req, res) => {
         },
       });
 
-      await initModel.images.destroy({
+      const removeImg = await initModel.images.destroy({
         where: {
           img_id: imgId,
         },
       });
 
-      responseData(res, "Delete image successfully", 200);
+      responseData(res, "Delete image successfully", 200, removeImg);
       return;
     }
     responseData(res, "Token has expired or is invalid", 401);
-    
   } catch (error) {
     console.log("🚀 ~ deleteImgByImgId ~ error:", error);
-    
   }
+};
+
+// DELETE SAVED IMAGE
+const deleteSavedImgByImgId = async (req, res) => {
+  const { imgId } = req.query;
+
+  const { token } = req.headers;
+
+  if (checkToken(token) !== null) {
+    responseData(res, "Token has expired or is invalid", 401);
+    return;
+  }
+
+  const { userId } = decodeToken(token);
+
+  const checkImg = await initModel.save_images.findOne({
+    where: {
+      img_id: imgId,
+      user_id: userId,
+    },
+    include: ["img", "user"],
+  });
+
+  if (!checkImg) {
+    responseData(res, "Image does not exist", 404);
+    return;
+  }
+
+  await initModel.save_images.destroy(
+    {
+      where: {
+        img_id: checkImg.img_id,
+        user_id: checkImg.user_id,
+      },
+    }
+  );
+
+  responseData(res, "Delete saved image successfully", 200);
 };
 
 export {
@@ -379,4 +381,5 @@ export {
   getListSaveImgByUserId,
   getListImgByUserId,
   deleteImgByImgId,
+  deleteSavedImgByImgId,
 };

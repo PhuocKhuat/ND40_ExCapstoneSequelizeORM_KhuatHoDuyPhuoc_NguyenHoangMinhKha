@@ -2,6 +2,7 @@ import express from "express";
 import {
   addImage,
   deleteImgByImgId,
+  deleteSavedImgByImgId,
   getImgInfoAndCreator,
   getImgList,
   getListImgByUserId,
@@ -33,5 +34,7 @@ imageRouter.get("/get-list-saved-image", middleToken, getListSaveImgByUserId);
 imageRouter.get("/get-list-created-image", middleToken, getListImgByUserId);
 
 imageRouter.delete("/delete-image/:imgId", middleToken, deleteImgByImgId);
+
+imageRouter.delete("/delete_saved-image", deleteSavedImgByImgId);
 
 export default imageRouter;
