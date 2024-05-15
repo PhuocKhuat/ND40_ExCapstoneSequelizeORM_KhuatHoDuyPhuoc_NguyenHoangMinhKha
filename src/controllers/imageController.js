@@ -304,18 +304,23 @@ const deleteImgByImgId = async (req, res) => {
     let { imgId } = req.params;
 
     let { token } = req.headers;
+    
     let errToken = checkToken(token);
 
     if (errToken === null) {
+      const { userId } = decodeToken(token);
+
       await initModel.save_images.destroy({
         where: {
           img_id: imgId,
+          user_id: userId,
         },
       });
 
       await initModel.comments.destroy({
         where: {
           img_id: imgId,
+          user_id: userId,
         },
       });
 
