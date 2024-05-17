@@ -127,23 +127,30 @@ const refreshToken = async (req, res) => {
 
   let errTokenRef = checkTokenRef(getUser.refresh_token);
 
-  if (errTokenRef != null) {
+  if (errTokenRef !== null) {
     responseData(res, "Token is not authorized", 401, "");
     return;
   }
 
   let { key } = decodeToken(getUser.dataValues.refresh_token);
 
-  if (verifyToken.key != key) {
+  if (verifyToken.key !== key) {
     responseData(res, "Token is not authorized", 401, "");
     return;
   }
 
   let newToken = createToken({
     userId: getUser.dataValues.user_id,
+    email: getUser.dataValues.email,
+    fullName: getUser.dataValues.full_name,
+    age: getUser.dataValues.age,
   });
 
-  responseData(res, "", 200, newToken);
+  const format = {
+    token: newToken,
+  };
+
+  responseData(res, "Proceed successfully", 200, format);
 };
 
 const getCommentInfo = async (req, res) => {
@@ -298,7 +305,6 @@ const getUserInfo = async (req, res) => {
     }
     responseData(res, "Token has expired or is invalid", 401);
   } catch (error) {
-    
     console.log("🚀 ~ getUserInfo ~ error:", error);
   }
 };

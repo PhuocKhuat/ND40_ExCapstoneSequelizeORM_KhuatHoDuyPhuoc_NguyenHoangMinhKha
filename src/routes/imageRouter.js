@@ -27,13 +27,13 @@ imageRouter.get("/get-image-list", getImgList);
 
 imageRouter.get("/search-img-list-by-name", searchImgListByName);
 
-imageRouter.post("/add-image", upload.array("image"), addImage);
+imageRouter.post("/add-image", upload.array("image"), middleToken, addImage);
 
 imageRouter.get("/get-list-saved-image", middleToken, getListSaveImgByUserId);
 
 imageRouter.get("/get-list-created-image", middleToken, getListImgByUserId);
 
-imageRouter.delete("/delete-image/:imgId", middleToken, deleteImgByImgId);
+imageRouter.delete("/delete-image/:imgId", deleteImgByImgId);
 
 imageRouter.delete("/delete_saved-image", deleteSavedImgByImgId);
 
