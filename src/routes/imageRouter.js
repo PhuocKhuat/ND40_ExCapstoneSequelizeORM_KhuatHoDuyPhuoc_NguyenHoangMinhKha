@@ -27,7 +27,7 @@ imageRouter.get("/get-image-list", getImgList);
 
 imageRouter.get("/search-img-list-by-name", searchImgListByName);
 
-imageRouter.post("/add-image", upload.array("image"), middleToken, addImage);
+imageRouter.post("/add-image", upload.array("image"), addImage);
 
 imageRouter.get("/get-list-saved-image", middleToken, getListSaveImgByUserId);
 

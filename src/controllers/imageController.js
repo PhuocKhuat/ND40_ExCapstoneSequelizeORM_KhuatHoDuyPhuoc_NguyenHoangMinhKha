@@ -218,6 +218,7 @@ const addImage = async (req, res) => {
 const getListSaveImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
+    console.log("🚀 ~ getListSaveImgByUserId ~ token:", token)
     let errToken = checkToken(token);
 
     if (errToken === null) {

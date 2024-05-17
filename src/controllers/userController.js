@@ -114,7 +114,7 @@ const refreshToken = async (req, res) => {
 
   let errToken = checkToken(token);
 
-  if (errToken != null && errToken.name != "TokenExpiredError") {
+  if (errToken !== null && errToken.name !== "TokenExpiredError") {
     responseData(res, "Token is not authorized", 401, "");
     return;
   }
@@ -125,7 +125,7 @@ const refreshToken = async (req, res) => {
 
   let getUser = await initModel.users.findByPk(userId);
 
-  let errTokenRef = checkTokenRef(getUser.refresh_token);
+  let errTokenRef = checkTokenRef(getUser.dataValues.refresh_token);
 
   if (errTokenRef !== null) {
     responseData(res, "Token is not authorized", 401, "");
@@ -141,12 +141,13 @@ const refreshToken = async (req, res) => {
 
   let newToken = createToken({
     userId: getUser.dataValues.user_id,
-    email: getUser.dataValues.email,
-    fullName: getUser.dataValues.full_name,
-    age: getUser.dataValues.age,
   });
-
+  
   const format = {
+    email: getUser.email,
+    fullName: getUser.full_name,
+    age: getUser.age,
+    role: getUser.role,
     token: newToken,
   };
 
