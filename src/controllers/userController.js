@@ -142,7 +142,7 @@ const refreshToken = async (req, res) => {
   let newToken = createToken({
     userId: getUser.dataValues.user_id,
   });
-  
+
   const format = {
     email: getUser.email,
     fullName: getUser.full_name,
@@ -310,6 +310,78 @@ const getUserInfo = async (req, res) => {
   }
 };
 
+const getUserList = async (req, res) => {
+  try {
+    const { token } = req.headers;
+
+    const errToken = checkToken(token);
+
+    if (errToken !== null && errToken.name !== "TokenExpiredError") {
+      responseData(res, "Non-authorized tokens", 401);
+      return;
+    }
+
+    const userList = await initModel.users.findAll();
+
+    const format = userList.map((user) => ({
+      userId: user.user_id,
+      email: user.email,
+      fullName: user.full_name,
+      age: user.age,
+      avatar: user.avatar,
+      role: user.role,
+    }));
+
+    responseData(res, "Proceed successfully", 200, format);
+  } catch (error) {
+    console.log("🚀 ~ getUserList ~ error:", error);
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { UserId } = req.query;
+
+    const { token } = req.headers;
+
+    const errToken = checkToken(token);
+
+    if (errToken !== null) {
+      responseData(res, "Non-authorized tokens", 404);
+      return;
+    }
+
+    await initModel.save_images.destroy({
+      where: {
+        user_id: UserId,
+      },
+    });
+
+    await initModel.comments.destroy({
+      where: {
+        user_id: UserId,
+      },
+    });
+
+    await initModel.images.destroy({
+      where: {
+        user_id: UserId,
+      },
+    });
+
+    await initModel.users.destroy({
+      where: {
+        user_id: UserId,
+      },
+    });
+
+    responseData(res, "Delete user successfully", 200);
+  } catch (error) {
+    console.log("🚀 ~ deleteUser ~ error:", error);
+    
+  }
+};
+
 export {
   signup,
   login,
@@ -318,4 +390,6 @@ export {
   refreshToken,
   updateUserInfo,
   getUserInfo,
+  getUserList,
+  deleteUser,
 };

@@ -1,7 +1,9 @@
 import express from "express";
 import {
+  deleteUser,
   getCommentInfo,
   getUserInfo,
+  getUserList,
   login,
   refreshToken,
   saveCommentInfo,
@@ -24,5 +26,9 @@ useRouter.post("/refresh-token", refreshToken);
 useRouter.put("/update-user-info", updateUserInfo);
 
 useRouter.get("/get-user-info", getUserInfo);
+
+useRouter.get("/get-user-list", getUserList);
+
+useRouter.delete("/delete-user", deleteUser);
 
 export default useRouter;
