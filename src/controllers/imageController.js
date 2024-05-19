@@ -218,7 +218,7 @@ const addImage = async (req, res) => {
 const getListSaveImgByUserId = async (req, res) => {
   try {
     let { token } = req.headers;
-    console.log("🚀 ~ getListSaveImgByUserId ~ token:", token)
+    console.log("🚀 ~ getListSaveImgByUserId ~ token:", token);
     let errToken = checkToken(token);
 
     if (errToken === null) {
@@ -299,35 +299,48 @@ const getListImgByUserId = async (req, res) => {
   }
 };
 
-// DELETE IMAGE
+// DELETE CREATED IMAGE
 const deleteImgByImgId = async (req, res) => {
   try {
     let { imgId } = req.params;
 
     let { token } = req.headers;
-    
+
     let errToken = checkToken(token);
 
     if (errToken === null) {
       const { userId } = decodeToken(token);
 
-      await initModel.save_images.destroy({
+      const checkImg = await initModel.images.findOne({
         where: {
           img_id: imgId,
           user_id: userId,
+        },
+        include: ["user"],
+      });
+
+      if (!checkImg) {
+        responseData(res, "Image Id not found", 404);
+        return;
+      }
+      await initModel.save_images.destroy({
+        where: {
+          img_id: checkImg.img_id,
+          user_id: checkImg.user_id,
         },
       });
 
       await initModel.comments.destroy({
         where: {
-          img_id: imgId,
-          user_id: userId,
+          img_id: checkImg.img_id,
+          user_id: checkImg.user_id,
         },
       });
 
       const removeImg = await initModel.images.destroy({
         where: {
-          img_id: imgId,
+          img_id: checkImg.img_id,
+          user_id: checkImg.user_id,
         },
       });
 
@@ -366,14 +379,12 @@ const deleteSavedImgByImgId = async (req, res) => {
     return;
   }
 
-  await initModel.save_images.destroy(
-    {
-      where: {
-        img_id: checkImg.img_id,
-        user_id: checkImg.user_id,
-      },
-    }
-  );
+  await initModel.save_images.destroy({
+    where: {
+      img_id: checkImg.img_id,
+      user_id: checkImg.user_id,
+    },
+  });
 
   responseData(res, "Delete saved image successfully", 200);
 };

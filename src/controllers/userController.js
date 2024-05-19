@@ -347,7 +347,7 @@ const deleteUser = async (req, res) => {
     const errToken = checkToken(token);
 
     if (errToken !== null) {
-      responseData(res, "Non-authorized tokens", 404);
+      responseData(res, "Non-authorized tokens", 401);
       return;
     }
 
