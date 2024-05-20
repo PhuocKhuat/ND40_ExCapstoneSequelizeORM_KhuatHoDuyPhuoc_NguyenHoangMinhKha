@@ -304,50 +304,41 @@ const deleteImgByImgId = async (req, res) => {
   try {
     let { imgId } = req.params;
 
-    let { token } = req.headers;
+    const checkImg = await initModel.images.findOne({
+      where: {
+        img_id: imgId,
+      },
+      include: ["user"],
+    });
 
-    let errToken = checkToken(token);
-
-    if (errToken === null) {
-      const { userId } = decodeToken(token);
-
-      const checkImg = await initModel.images.findOne({
-        where: {
-          img_id: imgId,
-          user_id: userId,
-        },
-        include: ["user"],
-      });
-
-      if (!checkImg) {
-        responseData(res, "Image Id not found", 404);
-        return;
-      }
-      await initModel.save_images.destroy({
-        where: {
-          img_id: checkImg.img_id,
-          user_id: checkImg.user_id,
-        },
-      });
-
-      await initModel.comments.destroy({
-        where: {
-          img_id: checkImg.img_id,
-          user_id: checkImg.user_id,
-        },
-      });
-
-      const removeImg = await initModel.images.destroy({
-        where: {
-          img_id: checkImg.img_id,
-          user_id: checkImg.user_id,
-        },
-      });
-
-      responseData(res, "Delete image successfully", 200, removeImg);
+    if (!checkImg) {
+      responseData(res, "Image Id not found", 404);
       return;
     }
-    responseData(res, "Token has expired or is invalid", 401);
+
+    await initModel.save_images.destroy({
+      where: {
+        img_id: checkImg.img_id,
+        user_id: checkImg.user_id,
+      },
+    });
+
+    await initModel.comments.destroy({
+      where: {
+        img_id: checkImg.img_id,
+        user_id: checkImg.user_id,
+      },
+    });
+
+    const removeImg = await initModel.images.destroy({
+      where: {
+        img_id: checkImg.img_id,
+        user_id: checkImg.user_id,
+      },
+    });
+
+    responseData(res, "Delete image successfully", 200, removeImg);
+    return;
   } catch (error) {
     console.log("🚀 ~ deleteImgByImgId ~ error:", error);
   }
@@ -357,25 +348,15 @@ const deleteImgByImgId = async (req, res) => {
 const deleteSavedImgByImgId = async (req, res) => {
   const { imgId } = req.query;
 
-  const { token } = req.headers;
-
-  if (checkToken(token) !== null) {
-    responseData(res, "Token has expired or is invalid", 401);
-    return;
-  }
-
-  const { userId } = decodeToken(token);
-
   const checkImg = await initModel.save_images.findOne({
     where: {
       img_id: imgId,
-      user_id: userId,
     },
     include: ["img", "user"],
   });
 
   if (!checkImg) {
-    responseData(res, "Image does not exist", 404);
+    responseData(res, "Image not found", 404);
     return;
   }
 

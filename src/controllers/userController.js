@@ -342,14 +342,14 @@ const deleteUser = async (req, res) => {
   try {
     const { UserId } = req.query;
 
-    const { token } = req.headers;
+    // const { token } = req.headers;
 
-    const errToken = checkToken(token);
+    // const errToken = checkToken(token);
 
-    if (errToken !== null) {
-      responseData(res, "Non-authorized tokens", 401);
-      return;
-    }
+    // if (errToken !== null) {
+    //   responseData(res, "Non-authorized tokens", 401);
+    //   return;
+    // }
 
     await initModel.save_images.destroy({
       where: {
