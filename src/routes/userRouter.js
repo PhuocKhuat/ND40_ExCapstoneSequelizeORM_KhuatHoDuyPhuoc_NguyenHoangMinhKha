@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  addUser,
   deleteUser,
   getCommentInfo,
   getUserInfo,
@@ -30,5 +31,7 @@ useRouter.get("/get-user-info", getUserInfo);
 useRouter.get("/get-user-list", getUserList);
 
 useRouter.delete("/delete-user", deleteUser);
+
+useRouter.post("/add-user", addUser);
 
 export default useRouter;

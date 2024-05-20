@@ -378,6 +378,51 @@ const deleteUser = async (req, res) => {
     responseData(res, "Delete user successfully", 200);
   } catch (error) {
     console.log("🚀 ~ deleteUser ~ error:", error);
+  }
+};
+
+const addUser = async (req, res) => {
+  try {
+    const { token } = req.headers;
+
+    const { email, fullName, password, age, role } = req.body;
+
+    const errToken = checkToken(token);
+
+    if (errToken !== null) {
+      responseData(res, "Non-authorized tokens", 401);
+      return;
+    }
+
+    const checkEmail = await initModel.users.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (checkEmail) {
+      responseData(res, "Email already exist", 409);
+      return;
+    }
+
+    const checkUser = await initModel.users.create({
+      email,
+      full_name: fullName,
+      pass_word: bcrypt.hashSync(password, 10),
+      age,
+      role,
+    });
+
+    const format = {
+      email: checkUser.email,
+      fullName: checkUser.full_name,
+      age: checkUser.age,
+      role: checkUser.role,
+    };
+
+    responseData(res, "Add user successfully", 200, format);
+  } catch (error) {
+    console.log("🚀 ~ addUser ~ error:", error);
     
   }
 };
@@ -392,4 +437,5 @@ export {
   getUserInfo,
   getUserList,
   deleteUser,
+  addUser,
 };
