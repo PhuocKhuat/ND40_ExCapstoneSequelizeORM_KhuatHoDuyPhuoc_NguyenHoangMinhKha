@@ -253,7 +253,7 @@ const getListSaveImgByUserId = async (req, res) => {
       responseData(res, "Get list save img by user id success", 200, format);
       return;
     }
-    responseData(res, "Invalid authenication", 401, "");
+    responseData(res, "Non-authorized tokens", 401);
   } catch (error) {
     console.log("🚀 ~ getListSaveImgByUserId ~ error:", error);
   }
@@ -265,35 +265,35 @@ const getListImgByUserId = async (req, res) => {
     let { token } = req.headers;
     let errToken = checkToken(token);
 
-    if (errToken == null) {
-      let { userId } = decodeToken(token);
-
-      let getImgList = await initModel.images.findAll({
-        where: {
-          user_id: userId,
-        },
-        include: "user",
-      });
-
-      const format = getImgList.map((img) => ({
-        imgId: img.img_id,
-        imgName: img.img_name,
-        imgUrl: img.img_url,
-        description: img.description,
-        user: {
-          useId: img.user?.user_id,
-          email: img.user?.email,
-          fullName: img.user?.full_name,
-          age: img.user?.age,
-          avatar: img.user?.avatar,
-          role: img.user?.role,
-        },
-      }));
-
-      responseData(res, "Get list image by userId successfully", 200, format);
+    if (errToken !== null && errToken.name !== "TokenExpiredError") {
+      responseData(res, "Non-authorized tokens", 401);
       return;
     }
-    responseData(res, "Token has expired or is invalid", 401);
+    let { userId } = decodeToken(token);
+
+    let getImgList = await initModel.images.findAll({
+      where: {
+        user_id: userId,
+      },
+      include: "user",
+    });
+
+    const format = getImgList.map((img) => ({
+      imgId: img.img_id,
+      imgName: img.img_name,
+      imgUrl: img.img_url,
+      description: img.description,
+      user: {
+        useId: img.user?.user_id,
+        email: img.user?.email,
+        fullName: img.user?.full_name,
+        age: img.user?.age,
+        avatar: img.user?.avatar,
+        role: img.user?.role,
+      },
+    }));
+
+    responseData(res, "Get list image by userId successfully", 200, format);
   } catch (error) {
     console.log("🚀 ~ getListImgByUserId ~ error:", error);
   }

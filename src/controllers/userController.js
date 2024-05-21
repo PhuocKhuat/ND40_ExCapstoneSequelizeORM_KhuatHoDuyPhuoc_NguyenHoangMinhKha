@@ -115,7 +115,7 @@ const refreshToken = async (req, res) => {
   let errToken = checkToken(token);
 
   if (errToken !== null && errToken.name !== "TokenExpiredError") {
-    responseData(res, "Token is not authorized", 401, "");
+    responseData(res, "Non-authorized tokens", 401);
     return;
   }
 
@@ -128,14 +128,14 @@ const refreshToken = async (req, res) => {
   let errTokenRef = checkTokenRef(getUser.dataValues.refresh_token);
 
   if (errTokenRef !== null) {
-    responseData(res, "Token is not authorized", 401, "");
+    responseData(res, "Non-authorized tokens", 401);
     return;
   }
 
   let { key } = decodeToken(getUser.dataValues.refresh_token);
 
   if (verifyToken.key !== key) {
-    responseData(res, "Token is not authorized", 401, "");
+    responseData(res, "Non-authorized tokens", 401);
     return;
   }
 
@@ -235,11 +235,7 @@ const saveCommentInfo = async (req, res) => {
       responseData(res, "Add comment successfully", 200, formatComment);
       return;
     }
-    responseData(
-      res,
-      "The token has expired, wrong security key or is invalid",
-      401
-    );
+    responseData(res, "Non-authorized tokens", 401);
   } catch (error) {
     return responseData(res, 500, "Error processing request");
   }
@@ -254,7 +250,7 @@ const updateUserInfo = async (req, res) => {
     const errToken = checkToken(token);
 
     if (errToken !== null && errToken.name !== "TokenExpiredError") {
-      responseData(res, "Token has expired or is isvalid", 401);
+      responseData(res, "Non-authorized tokens", 401);
       return;
     }
 
@@ -304,7 +300,7 @@ const getUserInfo = async (req, res) => {
       responseData(res, "Get info user successfully", 200, format);
       return;
     }
-    responseData(res, "Token has expired or is invalid", 401);
+    responseData(res, "Non-authorized tokens", 401);
   } catch (error) {
     console.log("🚀 ~ getUserInfo ~ error:", error);
   }
@@ -342,38 +338,70 @@ const deleteUser = async (req, res) => {
   try {
     const { UserId } = req.query;
 
-    // const { token } = req.headers;
+    const { token } = req.headers;
 
-    // const errToken = checkToken(token);
+    const errToken = checkToken(token);
 
-    // if (errToken !== null) {
-    //   responseData(res, "Non-authorized tokens", 401);
-    //   return;
-    // }
+    if (errToken !== null && errToken.name !== "TokenExpiredError") {
+      responseData(res, "Non-authorized tokens", 401);
+      return;
+    }
 
-    await initModel.save_images.destroy({
+    const checkUserSaveImage = await initModel.save_images.findOne({
       where: {
         user_id: UserId,
       },
     });
 
-    await initModel.comments.destroy({
+    if (checkUserSaveImage) {
+      await initModel.save_images.destroy({
+        where: {
+          user_id: UserId,
+        },
+      });
+    }
+
+    const checkUserComments = await initModel.comments.findOne({
       where: {
         user_id: UserId,
       },
     });
 
-    await initModel.images.destroy({
+    if (checkUserComments) {
+      await initModel.comments.destroy({
+        where: {
+          user_id: UserId,
+        },
+      });
+    }
+
+    const checkUserImages = await initModel.images.findOne({
       where: {
         user_id: UserId,
       },
     });
 
-    await initModel.users.destroy({
+    if (checkUserImages) {
+      await initModel.images.destroy({
+        where: {
+          user_id: UserId,
+        },
+      });
+    }
+
+    const checkUser = await initModel.users.findOne({
       where: {
         user_id: UserId,
       },
     });
+
+    if (checkUser) {
+      await initModel.users.destroy({
+        where: {
+          user_id: UserId,
+        },
+      });
+    }
 
     responseData(res, "Delete user successfully", 200);
   } catch (error) {
@@ -389,7 +417,7 @@ const addUser = async (req, res) => {
 
     const errToken = checkToken(token);
 
-    if (errToken !== null) {
+    if (errToken !== null && errToken.name !== "TokenExpiredError") {
       responseData(res, "Non-authorized tokens", 401);
       return;
     }
@@ -409,7 +437,7 @@ const addUser = async (req, res) => {
       email,
       full_name: fullName,
       pass_word: bcrypt.hashSync(password, 10),
-      age,
+      age: parseInt(age),
       role,
     });
 
@@ -423,7 +451,6 @@ const addUser = async (req, res) => {
     responseData(res, "Add user successfully", 200, format);
   } catch (error) {
     console.log("🚀 ~ addUser ~ error:", error);
-    
   }
 };
 
