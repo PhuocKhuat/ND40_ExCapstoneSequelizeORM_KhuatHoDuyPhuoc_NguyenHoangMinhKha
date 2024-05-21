@@ -196,7 +196,7 @@ const saveCommentInfo = async (req, res) => {
 
     let { token } = req.headers;
 
-    if (checkToken(token) == null) {
+    if (checkToken(token) === null) {
       let { userId } = decodeToken(token);
 
       let newComment = await initModel.comments.create({
