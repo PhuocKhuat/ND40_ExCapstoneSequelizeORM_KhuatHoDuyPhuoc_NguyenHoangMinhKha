@@ -9,6 +9,7 @@ import {
   refreshToken,
   saveCommentInfo,
   signup,
+  updateUser,
   updateUserInfo,
 } from "../controllers/userController.js";
 
@@ -33,5 +34,7 @@ useRouter.get("/get-user-list", getUserList);
 useRouter.delete("/delete-user", deleteUser);
 
 useRouter.post("/add-user", addUser);
+
+useRouter.put("/update-user", updateUser);
 
 export default useRouter;

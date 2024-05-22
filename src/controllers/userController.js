@@ -454,6 +454,10 @@ const addUser = async (req, res) => {
   }
 };
 
+const updateUser = (req, res) => {
+  res.send("abc");
+}
+
 export {
   signup,
   login,
@@ -465,4 +469,5 @@ export {
   getUserList,
   deleteUser,
   addUser,
+  updateUser
 };
