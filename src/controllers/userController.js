@@ -9,6 +9,7 @@ import {
   createTokenRef,
   decodeToken,
 } from "../configs/jwt.js";
+import { where } from "sequelize";
 
 const initModel = initModels(connectSequelize);
 
@@ -454,9 +455,44 @@ const addUser = async (req, res) => {
   }
 };
 
-const updateUser = (req, res) => {
-  res.send("abc");
-}
+const updateUser = async (req, res) => {
+  try {
+    const { token } = req.headers;
+
+    const { fullName, password, age, role } = req.body;
+
+    const errToken = checkToken(token);
+
+    if (errToken !== null && errToken?.name !== "TokenExpiredError") {
+      responseData(res, "Non-authorized tokens", 401);
+      return;
+    }
+
+    const { userId } = decodeToken(token);
+
+    const checkUser = await initModel.users.findByPk(userId);
+
+    const updateUsers = await checkUser.update({
+      full_name: fullName,
+      pass_word: bcrypt.hashSync(password, 10),
+      age: parseInt(age),
+      role,
+    });
+
+    const format = {
+      userId: updateUsers.user_id,
+      email: updateUsers.email,
+      fullName: updateUsers.full_name,
+      age: updateUsers.age,
+      role: updateUsers.role,
+    };
+
+    responseData(res, "Update user successfully", 200, format);
+  } catch (error) {
+    console.log("🚀 ~ updateUser ~ error:", error);
+    
+  }
+};
 
 export {
   signup,
@@ -469,5 +505,5 @@ export {
   getUserList,
   deleteUser,
   addUser,
-  updateUser
+  updateUser,
 };
