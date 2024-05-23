@@ -389,7 +389,7 @@ const deleteUser = async (req, res) => {
         },
       });
     }
-
+    
     const checkUser = await initModel.users.findOne({
       where: {
         user_id: UserId,
@@ -459,7 +459,7 @@ const updateUser = async (req, res) => {
   try {
     const { token } = req.headers;
 
-    const { fullName, password, age, role } = req.body;
+    const { email, fullName, age, role } = req.body;
 
     const errToken = checkToken(token);
 
@@ -468,13 +468,14 @@ const updateUser = async (req, res) => {
       return;
     }
 
-    const { userId } = decodeToken(token);
+    const checkEmail = await initModel.users.findOne({
+      where: {
+        email,
+      }
+    })
 
-    const checkUser = await initModel.users.findByPk(userId);
-
-    const updateUsers = await checkUser.update({
+    const updateUsers = await checkEmail.update({
       full_name: fullName,
-      pass_word: bcrypt.hashSync(password, 10),
       age: parseInt(age),
       role,
     });
@@ -490,7 +491,6 @@ const updateUser = async (req, res) => {
     responseData(res, "Update user successfully", 200, format);
   } catch (error) {
     console.log("🚀 ~ updateUser ~ error:", error);
-    
   }
 };
 
