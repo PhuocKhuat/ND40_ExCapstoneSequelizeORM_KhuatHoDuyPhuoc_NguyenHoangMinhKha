@@ -7,14 +7,27 @@ const initModel = initModels(connectSequelize);
 const socketIO = (socket) => {
   console.log("🚀 ~ socketIO ~ socket:", socket.id);
 
+  socket.on("join-room", async (roomId) => {
+    socket.join(roomId);
+
+    const dataChat = await initModel.chat.findAll({
+      where: {
+        room_id: roomId,
+      },
+    });
+
+    io.to(roomId).emit("data-chat", dataChat);
+  });
+
   socket.on("send-message", async (data) => {
     await initModel.chat.create({
       content: data.content,
+      room_id: data.roomId,
       date_time: data.dateTime,
       user_id: data.userId,
     });
 
-    io.emit("response-message", data);
+    io.to(data.roomId).emit("response-message", data);
   });
 };
 
