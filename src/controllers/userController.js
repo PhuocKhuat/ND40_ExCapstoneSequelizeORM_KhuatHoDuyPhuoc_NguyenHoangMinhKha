@@ -9,7 +9,6 @@ import {
   createTokenRef,
   decodeToken,
 } from "../configs/jwt.js";
-import { where } from "sequelize";
 
 const initModel = initModels(connectSequelize);
 
@@ -92,6 +91,7 @@ const login = async (req, res) => {
       });
 
       let formatForm = {
+        userId: checkEmail.user_id,
         email: checkEmail.email,
         fullName: checkEmail.full_name,
         password: password,
@@ -145,6 +145,7 @@ const refreshToken = async (req, res) => {
   });
 
   const format = {
+    userId,
     email: getUser.email,
     fullName: getUser.full_name,
     age: getUser.age,
@@ -389,7 +390,7 @@ const deleteUser = async (req, res) => {
         },
       });
     }
-    
+
     const checkUser = await initModel.users.findOne({
       where: {
         user_id: UserId,
@@ -471,8 +472,8 @@ const updateUser = async (req, res) => {
     const checkEmail = await initModel.users.findOne({
       where: {
         email,
-      }
-    })
+      },
+    });
 
     const updateUsers = await checkEmail.update({
       full_name: fullName,
