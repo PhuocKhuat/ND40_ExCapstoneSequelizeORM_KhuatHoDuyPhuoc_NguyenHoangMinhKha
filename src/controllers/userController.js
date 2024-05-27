@@ -515,7 +515,7 @@ const uploadAvatar = async (req, res) => {
     const checkUser = await initModel.users.findByPk(userId);
 
     await compressImage(
-      process.cwd() + "./public/imgs" + file.filename,
+      process.cwd() + "/public/imgs" + file?.filename,
       process.cwd() + "/public/optimized"
     );
 
