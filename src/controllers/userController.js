@@ -497,44 +497,49 @@ const updateUser = async (req, res) => {
 };
 
 const uploadAvatar = async (req, res) => {
-  const file = req.file;
+  try {
+    let file = req.file;
+    // console.log("🚀 ~ uploadAvatar ~ file:", file)
 
-  const { token } = req.headers;
+    const { token } = req.headers;
 
-  const errToken = checkToken(token);
+    const errToken = checkToken(token);
 
-  if (errToken !== null || errToken?.name === "TokenExpiredError") {
-    responseData(res, "Non-authorized tokens", 401);
-    return;
+    if (errToken !== null || errToken?.name === "TokenExpiredError") {
+      responseData(res, "Non-authorized tokens", 401);
+      return;
+    }
+
+    const { userId } = decodeToken(token);
+
+    const checkUser = await initModel.users.findByPk(userId);
+
+    await compressImage(
+      process.cwd() + "./public/imgs" + file.filename,
+      process.cwd() + "/public/optimized"
+    );
+
+    checkUser.dataValues.avatar = file?.filename;
+
+    const updateUser = await checkUser.update(checkUser.dataValues, {
+      where: {
+        user_id: userId,
+      },
+    });
+
+    const format = {
+      userId: updateUser.user_id,
+      email: updateUser.email,
+      fullName: updateUser.full_name,
+      age: updateUser.age,
+      avatar: updateUser.avatar,
+      role: updateUser.role,
+    };
+
+    responseData(res, "Upload avatar successfully", 200, format);
+  } catch (error) {
+    console.log("🚀 ~ uploadAvatar ~ error:", error);
   }
-
-  const { userId } = decodeToken(token);
-
-  const checkUser = await initModel.users.findByPk(userId);
-
-  await compressImageAvatar(
-    process.cwd() + "/public/users" + file.filename,
-    process.cwd() + "/public/optimized"
-  );
-
-  checkUser.dataValues.avatar = file.filename;
-
-  const updateUser = await checkUser.update(checkUser.dataValues, {
-    where: {
-      user_id: userId,
-    },
-  });
-
-  const format = {
-    userId: updateUser.user_id,
-    email: updateUser.email,
-    fullName: updateUser.full_name,
-    age: updateUser.age,
-    avatar: updateUser.avatar,
-    role: updateUser.role,
-  };
-
-  responseData(res, "Upload avatar successfully", 200, format);
 };
 
 export {
