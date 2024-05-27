@@ -1,0 +1,7 @@
+File from: [C:\Users\ADMIN\Desktop\Exercise Node 40\ex-capstone-sequelize-orm/public/users1716787951135_avatar_molly.png]
+
+File to: [C:\Users\ADMIN\Desktop\Exercise Node 40\ex-capstone-sequelize-orm/public/optimizedusers1716787951135_avatar_molly.png]
+
+Compression algorithm: [-]
+
+Description: File does not exist!

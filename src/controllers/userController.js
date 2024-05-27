@@ -9,6 +9,7 @@ import {
   createTokenRef,
   decodeToken,
 } from "../configs/jwt.js";
+import { compressImage, compressImageAvatar } from "../configs/compressImg.js";
 
 const initModel = initModels(connectSequelize);
 
@@ -495,6 +496,47 @@ const updateUser = async (req, res) => {
   }
 };
 
+const uploadAvatar = async (req, res) => {
+  const file = req.file;
+
+  const { token } = req.headers;
+
+  const errToken = checkToken(token);
+
+  if (errToken !== null || errToken?.name === "TokenExpiredError") {
+    responseData(res, "Non-authorized tokens", 401);
+    return;
+  }
+
+  const { userId } = decodeToken(token);
+
+  const checkUser = await initModel.users.findByPk(userId);
+
+  await compressImageAvatar(
+    process.cwd() + "/public/users" + file.filename,
+    process.cwd() + "/public/optimized"
+  );
+
+  checkUser.dataValues.avatar = file.filename;
+
+  const updateUser = await checkUser.update(checkUser.dataValues, {
+    where: {
+      user_id: userId,
+    },
+  });
+
+  const format = {
+    userId: updateUser.user_id,
+    email: updateUser.email,
+    fullName: updateUser.full_name,
+    age: updateUser.age,
+    avatar: updateUser.avatar,
+    role: updateUser.role,
+  };
+
+  responseData(res, "Upload avatar successfully", 200, format);
+};
+
 export {
   signup,
   login,
@@ -507,4 +549,5 @@ export {
   deleteUser,
   addUser,
   updateUser,
+  uploadAvatar,
 };

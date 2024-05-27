@@ -11,7 +11,9 @@ import {
   signup,
   updateUser,
   updateUserInfo,
+  uploadAvatar,
 } from "../controllers/userController.js";
+import upload from "../configs/upload.js";
 
 const useRouter = express.Router();
 
@@ -36,5 +38,7 @@ useRouter.delete("/delete-user", deleteUser);
 useRouter.post("/add-user", addUser);
 
 useRouter.put("/update-user", updateUser);
+
+useRouter.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
 
 export default useRouter;

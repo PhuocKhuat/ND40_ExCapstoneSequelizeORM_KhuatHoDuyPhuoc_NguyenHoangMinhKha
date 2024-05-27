@@ -1,9 +1,9 @@
+import { compressImage } from "../configs/compressImg.js";
 import { checkToken, decodeToken } from "../configs/jwt.js";
 import responseData from "../configs/responseData.js";
 import connectSequelize from "../models/connect.js";
 import initModels from "../models/init-models.js";
-import sequelize, { where } from "sequelize";
-import compressImage from "../configs/compressImg.js";
+import sequelize from "sequelize";
 
 const initModel = initModels(connectSequelize);
 
