@@ -98,6 +98,7 @@ const login = async (req, res) => {
         password: password,
         age: checkEmail.age,
         role: checkEmail.role,
+        avatar:checkEmail.avatar,
         token,
       };
 
@@ -151,6 +152,7 @@ const refreshToken = async (req, res) => {
     fullName: getUser.full_name,
     age: getUser.age,
     role: getUser.role,
+    avatar:getUser.avatar,
     token: newToken,
   };
 
@@ -498,8 +500,8 @@ const updateUser = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   try {
-    let file = req.file;
-    // console.log("🚀 ~ uploadAvatar ~ file:", file)
+    const file = req.file;
+    // console.log("🚀 ~ uploadAvatar ~ file:", file);
 
     const { token } = req.headers;
 
@@ -515,25 +517,25 @@ const uploadAvatar = async (req, res) => {
     const checkUser = await initModel.users.findByPk(userId);
 
     await compressImage(
-      process.cwd() + "/public/imgs" + file?.filename,
-      process.cwd() + "/public/optimized"
+      process.cwd() + "/public/imgs/" + file.filename,
+      process.cwd() + "/public/optimized/"
     );
 
-    checkUser.dataValues.avatar = file?.filename;
+    checkUser.dataValues.avatar = file.filename;
 
-    const updateUser = await checkUser.update(checkUser.dataValues, {
+    await initModel.users.update(checkUser.dataValues, {
       where: {
         user_id: userId,
       },
     });
 
     const format = {
-      userId: updateUser.user_id,
-      email: updateUser.email,
-      fullName: updateUser.full_name,
-      age: updateUser.age,
-      avatar: updateUser.avatar,
-      role: updateUser.role,
+      userId: checkUser.user_id,
+      email: checkUser.email,
+      fullName: checkUser.full_name,
+      age: checkUser.age,
+      avatar: checkUser.avatar,
+      role: checkUser.role,
     };
 
     responseData(res, "Upload avatar successfully", 200, format);
